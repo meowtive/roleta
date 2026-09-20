@@ -1,26 +1,159 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --cream: #faf7f2;
+  --cream-deep: #efe6dc;
+  --terracotta: #e28aa0;
+  --terracotta-deep: #d46b86;
+  --blush: #f3b8c6;
+  --blush-deep: #e28aa0;
+  --gold: #f2c14b;
+  --gold-soft: #f7d98a;
+  --sage: #6b7a52;
+  --sage-deep: #5a6b45;
+  --ink: #4a5640;
+  --ink-soft: #6b7a52;
+  --paper: #fffdf9;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-cream: var(--cream);
+  --color-cream-deep: var(--cream-deep);
+  --color-terracotta: var(--terracotta);
+  --color-terracotta-deep: var(--terracotta-deep);
+  --color-blush: var(--blush);
+  --color-blush-deep: var(--blush-deep);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-sage: var(--sage);
+  --color-sage-deep: var(--sage-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-paper: var(--paper);
+  --font-display: var(--font-script);
+  --font-sans: var(--font-josefin);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  min-height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-josefin), ui-sans-serif, system-ui, sans-serif;
+}
+
+.party-bg {
+  background:
+    radial-gradient(ellipse 42% 28% at 0% 0%, rgba(242, 160, 180, 0.16), transparent 55%),
+    radial-gradient(ellipse 36% 24% at 100% 12%, rgba(242, 193, 75, 0.1), transparent 50%),
+    radial-gradient(ellipse 40% 26% at 100% 100%, rgba(240, 138, 90, 0.08), transparent 52%),
+    var(--cream);
+}
+
+.floral-sway {
+  animation: floral-sway 9s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.floral-sway-slow {
+  animation: floral-sway 12s ease-in-out infinite reverse;
+  transform-origin: 70% 40%;
+}
+
+@keyframes floral-sway {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-0.6deg);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0) rotate(0.8deg);
+  }
+}
+
+.petal {
+  position: absolute;
+  width: 10px;
+  height: 16px;
+  border-radius: 80% 20% 80% 20%;
+  opacity: 0.55;
+  animation: petal-drift 14s linear infinite;
+}
+
+.petal-a {
+  left: 12%;
+  top: -8%;
+  background: #f3b8c6;
+  animation-delay: 0s;
+}
+
+.petal-b {
+  left: 68%;
+  top: -10%;
+  background: #ffd56a;
+  animation-delay: -4s;
+}
+
+.petal-c {
+  left: 32%;
+  top: -12%;
+  background: #e28aa0;
+  animation-delay: -8s;
+}
+
+.petal-d {
+  left: 84%;
+  top: -6%;
+  background: #fffdf9;
+  animation-delay: -11s;
+}
+
+@keyframes petal-drift {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate3d(-40px, 110vh, 0) rotate(220deg);
+    opacity: 0;
+  }
+}
+
+.party-grain {
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+  opacity: 0.06;
+  mix-blend-mode: multiply;
+}
+
+.wheel-shadow {
+  filter: drop-shadow(0 18px 32px rgba(74, 86, 64, 0.12));
+}
+
+.spin-button {
+  background: linear-gradient(180deg, #f0a3b6 0%, #e28aa0 55%, #d46b86 100%);
+  box-shadow: 0 12px 28px rgba(226, 138, 160, 0.28);
+}
+
+@media (max-width: 767px) {
+  .petal,
+  .floral-sway,
+  .floral-sway-slow {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
