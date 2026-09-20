@@ -9,6 +9,8 @@ import { visualGifts } from "@/lib/gifts";
 
 type Phase = "idle" | "claiming" | "spinning" | "revealing";
 
+const PLAYED_KEY = "cha-sah-presente";
+
 function remainingLabel(count: number) {
   if (count === 1) {
     return "Ainda resta 1 presente";
@@ -25,6 +27,7 @@ export function PartyScreen({ initial }: { initial: GiftState }) {
   const [preview, setPreview] = useState(initial.ok ? initial.preview : false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [wonGift, setWonGift] = useState<string | null>(null);
+  const [playedGift, setPlayedGift] = useState<string | null>(null);
   const [liveName, setLiveName] = useState(initial.ok ? initial.remaining[0] ?? "" : "");
   const phaseRef = useRef<Phase>("idle");
   const nextRemainingRef = useRef<string[]>([]);
@@ -32,6 +35,14 @@ export function PartyScreen({ initial }: { initial: GiftState }) {
   const pareSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    const saved = window.localStorage.getItem(PLAYED_KEY);
+
+    if (saved) {
+      setPlayedGift(saved);
+      setWonGift(saved);
+      setLiveName(saved);
+    }
+
     const theme = new Audio("/sounds/abertura-roda-roda-jequiti.mp3");
     const pare = new Audio("/sounds/pare.mp3");
     theme.preload = "auto";
@@ -122,6 +133,11 @@ export function PartyScreen({ initial }: { initial: GiftState }) {
     setPhaseSafe("revealing");
   }, [setPhaseSafe]);
 
+  function rememberGift(gift: string) {
+    setPlayedGift(gift);
+    window.localStorage.setItem(PLAYED_KEY, gift);
+  }
+
   const refresh = useCallback(async () => {
     if (phaseRef.current !== "idle") {
       return;
@@ -160,7 +176,7 @@ export function PartyScreen({ initial }: { initial: GiftState }) {
   }, [refresh]);
 
   async function handleSpin() {
-    if (phase !== "idle" || remaining.length === 0) {
+    if (phase !== "idle" || remaining.length === 0 || playedGift) {
       return;
     }
 
@@ -190,18 +206,19 @@ export function PartyScreen({ initial }: { initial: GiftState }) {
 
     nextRemainingRef.current = result.remaining;
     setWonGift(result.gift);
+    rememberGift(result.gift);
     setWheelItems(visualGifts(remaining, result.gift));
     setPhaseSafe("spinning");
   }
 
   function handleRevealClose() {
     setWheelItems(visualGifts(nextRemainingRef.current));
-    setWonGift(null);
     setPhaseSafe("idle");
   }
 
   const busy = phase === "claiming" || phase === "spinning";
-  const empty = remaining.length === 0 && phase === "idle";
+  const locked = Boolean(playedGift) && !busy;
+  const empty = remaining.length === 0 && phase === "idle" && !playedGift;
   const configured = initial.ok || remaining.length > 0 || Boolean(mode);
 
   return (
@@ -249,7 +266,7 @@ export function PartyScreen({ initial }: { initial: GiftState }) {
 
             <div className="mt-3 min-h-12 text-center sm:mt-6 sm:min-h-16">
               <p className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-sage-deep sm:text-xs sm:tracking-[0.2em]">
-                {busy ? "Passando na seta" : "Na seta"}
+                {busy ? "Passando na seta" : locked ? "Você tirou" : "Na seta"}
               </p>
               <p
                 aria-live="polite"
@@ -257,22 +274,26 @@ export function PartyScreen({ initial }: { initial: GiftState }) {
               >
                 {empty
                   ? "A roleta está vazia"
-                  : phase === "revealing" && wonGift
-                    ? wonGift
+                  : locked || (phase === "revealing" && wonGift)
+                    ? playedGift || wonGift
                     : liveName || "Toque para girar"}
               </p>
             </div>
 
             <p className="mt-1.5 text-xs font-semibold text-ink-soft sm:mt-2 sm:text-sm">
-              {empty ? "Todos os presentes já foram sorteados." : remainingLabel(remaining.length)}
+              {empty
+                ? "Todos os presentes já foram sorteados."
+                : locked
+                  ? "Este aparelho já sorteou. Não gira de novo."
+                  : remainingLabel(remaining.length)}
             </p>
 
             <button
               type="button"
               onClick={() => void handleSpin()}
-              disabled={busy || empty}
+              disabled={busy || empty || locked}
               className={`spin-button mt-4 inline-flex min-h-14 w-full max-w-xs touch-manipulation items-center justify-center rounded-full px-8 text-lg font-extrabold text-paper transition enabled:active:scale-[0.98] disabled:cursor-not-allowed sm:mt-5 ${
-                empty
+                empty || locked
                   ? "disabled:bg-cream-deep disabled:text-ink-soft disabled:shadow-none"
                   : "disabled:text-paper"
               }`}
@@ -283,7 +304,9 @@ export function PartyScreen({ initial }: { initial: GiftState }) {
                   ? "Girando..."
                   : empty
                     ? "Acabou"
-                    : "Girar"}
+                    : locked
+                      ? "Já sorteado"
+                      : "Girar"}
             </button>
           </section>
         )}
